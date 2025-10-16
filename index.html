@@ -1,0 +1,2162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello-Style Responsive Navbar with Dropdown Modals</title>
+    <!-- Load Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Configure Tailwind for the "Inter" font -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles for modal transitions and base hide/show */
+        .modal-wrapper {
+            transition: opacity 0.3s ease-out, visibility 0.3s ease-out;
+            opacity: 0;
+            visibility: hidden;
+        }
+        .modal-wrapper.flex {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-out;
+            transform: translateY(-50px);
+        }
+        .modal-wrapper.flex .modal-content {
+            transform: translateY(0);
+        }
+        /* Style for the main navigation links */
+        .nav-link {
+            @apply px-4 py-4 text-base font-medium text-gray-700 hover:text-blue-600 transition duration-150 rounded-lg cursor-pointer;
+        }
+        /* Mobile menu links style */
+        .mobile-nav-link {
+             @apply block px-4 py-3 text-lg font-medium text-gray-700 hover:bg-blue-50 hover:text-blue-600 transition;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50 font-sans">
+
+    <!-- 1. NAVIGATION BAR (Desktop: 3-part layout | Mobile: Collapsible) -->
+    <header class="sticky top-0 z-50 bg-white shadow-md">
+        <nav class="container mx-auto px-4 sm:px-6 lg:px-8 h-16 flex justify-between items-center">
+            
+            <!-- LEFT: Logo & Name -->
+            <a href="#" class="flex items-center space-x-2 shrink-0">
+                <!-- Trello Icon SVG -->
+                <svg class="w-6 h-6 text-blue-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M7 3h10a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3zM7 5a1 1 0 0 0-1 1v12a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1H7z"></path>
+                    <path d="M9 8h6v2H9zM9 12h6v2H9zM9 16h3v2H9z"></path>
+                </svg>
+                <span class="text-xl font-extrabold text-gray-800">Trello</span>
+            </a>
+
+            <!-- CENTER: Main Nav Links (Spacing updated to space-x-1.5, which is 6px) -->
+            <ul id="nav-links" class="hidden md:flex flex-grow justify-center space-x-3.5">
+                <li><a href="#" data-modal-target="features-modal" class="nav-link">Features</a></li>
+                <li><a href="#" data-modal-target="solutions-modal" class="nav-link">Solutions</a></li>
+                <li><a href="#" data-modal-target="plans-modal" class="nav-link">Plans</a></li>
+                <li><a href="#" data-modal-target="pricing-modal" class="nav-link">Pricing</a></li>
+                <li><a href="#" data-modal-target="resources-modal" class="nav-link">Resources</a></li>
+            </ul>
+            
+            <!-- RIGHT: Action Buttons & Mobile Menu Toggle -->
+            <div class="flex items-center space-x-4 shrink-0">
+                <!-- Desktop Buttons (Hidden on extra small screens) -->
+                <div class="hidden sm:flex space-x-3">
+                    <a href="login.html" class="px-3 py-1.5 text-gray-700 hover:text-blue-600 transition font-medium">Log in</a>
+                    <a href="signup.html" class="px-3 py-1.5 bg-blue-600 text-white rounded-lg font-bold hover:bg-blue-700 transition shadow-md whitespace-nowrap">Get Trello for free</a>
+                </div>
+                
+                <!-- Mobile Menu Icon -->
+                <button id="menu-toggle" aria-controls="mobile-menu-drawer" aria-expanded="false" class="md:hidden text-gray-600 hover:text-blue-600 p-2 rounded-lg">
+                    <!-- Icon for Bars/Close -->
+                    <svg id="icon-bars" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16m-7 6h7" />
+                    </svg>
+                    <svg id="icon-close" class="h-6 w-6 hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+        </nav>
+        
+        <!-- Mobile Menu Drawer (Toggled by JS) -->
+        <div id="mobile-menu-drawer" class="hidden md:hidden bg-white shadow-xl absolute w-full z-40 border-t border-gray-200 py-2">
+            <ul class="space-y-1 pb-3">
+                <li><a href="#" data-modal-target="features-modal" class="mobile-nav-link">Features</a></li>
+                <li><a href="#" data-modal-target="solutions-modal" class="mobile-nav-link">Solutions</a></li>
+                <li><a href="#" data-modal-target="plans-modal" class="mobile-nav-link">Plans</a></li>
+                <li><a href="#" data-modal-target="pricing-modal" class="mobile-nav-link">Pricing</a></li>
+                <li><a href="#" data-modal-target="resources-modal" class="mobile-nav-link">Resources</a></li>
+            </ul>
+            <div class="flex flex-col space-y-2 px-4 py-3 border-t border-gray-100 sm:hidden">
+                <a href="#" class="w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">Get Trello for free</a>
+                <a href="#" class="w-full text-center py-2 text-sm font-semibold text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition">Log in</a>
+            </div>
+        </div>
+    </header>
+
+   
+    
+    <!-- 2. MODAL DEFINITIONS (Maintained from your structure with minor cleanups) -->
+    
+    <!-- FEATURES MODAL -->
+    <div id="features-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 modal-wrapper" aria-modal="true" role="dialog" aria-labelledby="features-title">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] mx-4 p-6 rounded-xl shadow-2xl overflow-y-auto modal-content">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 id="features-title" class="text-2xl font-bold text-blue-600">App Features & Capabilities</h3>
+                <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">
+                    <span class="sr-only">Close modal</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <h4 class="text-xl font-semibold text-gray-700">Explore the features that help your team succeed</h4>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Inbox</p><p class="text-sm text-gray-600 mt-1">Capture every vital detail from emails, Slack, and more directly into your Trello Inbox.</p></div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Planner</p><p class="text-sm text-gray-600 mt-1">Sync your calendar and allocate focused time slots to boost productivity.</p></div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Automation</p><p class="text-sm text-gray-600 mt-1">Automate tasks and workflows with Butler automation.</p></div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Power-Ups</p><p class="text-sm text-gray-600 mt-1">Power up your teams by linking their favorite tools with Trello plugins.</p></div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Templates</p><p class="text-sm text-gray-600 mt-1">Give your team a blueprint for success with easy-to-use templates from industry leaders and the Trello community.</p></div>
+                    <div class="bg-blue-50 p-4 rounded-lg shadow-sm"><p class="font-bold text-blue-700">Integrations</p><p class="text-sm text-gray-600 mt-1">Find the apps your team is already using or discover new ways to get work done in Trello.</p></div>
+                </div>
+                <div class="border-t pt-4 mt-4">
+                    <h5 class="text-lg font-bold text-gray-800 mb-2">Meet Trello</h5>
+                    <p class="text-sm text-gray-600">Trello makes it easy for your team to get work done. No matter the project, workflow, or type of team, Trello can help keep things organized. It’s simple – sign-up, create a board, and you’re off! Productivity awaits.</p>
+                </div>
+            </div>
+            <div class="text-right pt-4 border-t mt-6">
+                <button class="close-modal-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SOLUTIONS MODAL -->
+    <div id="solutions-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 modal-wrapper" aria-modal="true" role="dialog" aria-labelledby="solutions-title">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] mx-4 p-6 rounded-xl shadow-2xl overflow-y-auto modal-content">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 id="solutions-title" class="text-2xl font-bold text-blue-600">Solutions: Trello Playbooks & Use Cases</h3>
+                <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">
+                    <span class="sr-only">Close modal</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-8">
+                <div>
+                    <h4 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">A page out of these pre-built Trello playbooks designed for all teams</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Marketing teams</p><p class="text-sm text-gray-600 mt-1">Whether launching a new product, campaign, or creating content, Trello helps marketing teams succeed.</p></div>
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Product management</p><p class="text-sm text-gray-600 mt-1">Use Trello’s management boards and roadmap features to simplify complex projects and processes.</p></div>
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Engineering teams</p><p class="text-sm text-gray-600 mt-1">Ship more code, faster, and give your developers the freedom to be more agile with Trello.</p></div>
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Design teams</p><p class="text-sm text-gray-600 mt-1">Empower your design teams by using Trello to streamline creative requests and promote more fluid cross-team collaboration.</p></div>
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Startups</p><p class="text-sm text-gray-600 mt-1">From hitting revenue goals to managing workflows, small businesses thrive with Trello.</p></div>
+                        <div class="p-4 bg-blue-50 rounded-lg shadow-sm border border-blue-200"><p class="font-bold text-blue-800">Remote teams</p><p class="text-sm text-gray-600 mt-1">Keep your remote team connected and motivated, no matter where they’re located around the world.</p></div>
+                    </div>
+                    <p class="text-sm text-center pt-4 text-blue-700 font-medium">See all teams</p>
+                </div>
+                <div>
+                    <h4 class="text-xl font-semibold text-gray-700 border-b pb-2 mb-4">Our product in action (Use Cases)</h4>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div class="p-4 bg-gray-100 rounded-lg shadow-sm"><p class="font-bold text-gray-800">Use case: Task management</p><p class="text-xs text-gray-600 mt-1">Track progress of tasks in one convenient place with a visual layout that adds ‘ta-da’ to your to-do’s.</p></div>
+                        <div class="p-4 bg-gray-100 rounded-lg shadow-sm"><p class="font-bold text-gray-800">Use case: Resource hub</p><p class="text-xs text-gray-600 mt-1">Save hours when you give teams a well-designed hub to find information easily and quickly.</p></div>
+                        <div class="p-4 bg-gray-100 rounded-lg shadow-sm"><p class="font-bold text-gray-800">Use case: Project management</p><p class="text-xs text-gray-600 mt-1">Keep projects organized, deadlines on track, and teammates aligned with Trello.</p></div>
+                    </div>
+                </div>
+            </div>
+            <div class="text-right pt-4 border-t mt-6">
+                <button class="close-modal-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- PLANS MODAL -->
+    <div id="plans-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 modal-wrapper" aria-modal="true" role="dialog" aria-labelledby="plans-title">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] mx-4 p-6 rounded-xl shadow-2xl overflow-y-auto modal-content">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 id="plans-title" class="text-2xl font-bold text-blue-600">Choose Your Plan</h3>
+                <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">
+                    <span class="sr-only">Close modal</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <h4 class="text-xl font-semibold text-gray-700">Trello's Flexible Pricing to Fit Your Team</h4>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div class="border-2 border-gray-200 p-5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 bg-white">
+                        <p class="text-lg font-bold text-gray-800">Free plan</p>
+                        <p class="text-sm text-gray-500 mt-1 h-12">For individuals or small teams looking to keep work organized.</p><br><br>
+                        <div class="mt-4"><span class="text-3xl font-extrabold text-blue-600">\$0</span>/user/month</div>
+                        <a href="#" class="mt-4 block w-full text-center py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition">Get Started</a>
+                    </div>
+                    <div class="border-2 border-blue-500 p-5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 bg-blue-50">
+                        <p class="text-lg font-bold text-blue-700">Standard</p>
+                        <p class="text-sm text-blue-600 mt-1 h-12">For teams that need to manage more work and scale collaboration.</p><br><br>
+                        <div class="mt-4"><span class="text-3xl font-extrabold text-blue-600">\$5</span>/user/month</div>
+                        <a href="#" class="mt-4 block w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">Choose Standard</a>
+                    </div>
+                    <div class="border-4 border-blue-600 p-5 rounded-xl shadow-2xl hover:shadow-3xl transition duration-300 bg-blue-100 relative">
+                        <span class="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-blue-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-md">BEST VALUE</span>
+                        <p class="text-lg font-bold text-blue-700 pt-1">Premium</p>
+                        <p class="text-sm text-blue-600 mt-1 h-12">Best for teams up to 100 that need to track multiple projects and visualize work in a variety of ways.</p><br><br>
+                        <div class="mt-4"><span class="text-3xl font-extrabold text-blue-600">\$10</span>/user/month</div>
+                        <a href="#" class="mt-4 block w-full text-center py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition">Go Premium</a>
+                    </div>
+                    <div class="border-2 border-gray-400 p-5 rounded-xl shadow-lg hover:shadow-xl transition duration-300 bg-white">
+                        <p class="text-lg font-bold text-gray-800">Enterprise</p>
+                        <p class="text-sm text-gray-500 mt-1 h-12">Everything your enterprise teams and admins need to manage projects.</p><br><br>
+                        <div class="mt-4"><span class="text-2xl font-extrabold text-gray-600">Custom</span></div>
+                        <a href="#" class="mt-4 block w-full text-center py-2 text-sm font-semibold text-white bg-gray-700 rounded-lg hover:bg-gray-800 transition">Contact Sales</a>
+                    </div>
+                </div>
+                <div class="border-t pt-4 mt-6 text-center">
+                    <h5 class="text-lg font-bold text-gray-800 mb-2">Compare Plans & Pricing</h5>
+                    <p class="text-sm text-gray-600">Whether you’re a team of 2 or 2,000, Trello’s flexible pricing model means you only pay for what you need.</p>
+                </div>
+            </div>
+            <div class="text-right pt-4 border-t mt-6">
+                <button class="close-modal-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+
+
+    <div id="pricing-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 modal-wrapper" aria-modal="true" role="dialog" aria-labelledby="pricing-title">
+  <div class="modal-backdrop absolute inset-0"></div>
+  <div class="relative bg-white w-full max-w-2xl max-h-[90vh] mx-4 p-6 rounded-xl shadow-2xl overflow-y-auto modal-content">
+    <!-- Header -->
+    <div class="flex justify-between items-center border-b pb-4 mb-4">
+      <h3 id="pricing-title" class="text-2xl font-bold text-blue-600">Pricing Details</h3>
+      <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">
+        <span class="sr-only">Close modal</span>
+        <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"
+          xmlns="http://www.w3.org/2000/svg">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="space-y-6 text-gray-700 leading-relaxed">
+      <section>
+        <h4 class="text-xl font-semibold text-black-600"> Free Plan</h4>
+        <p class="mt-2 text-gray-600 text-sm">
+          Trello’s Free plan is perfect for individuals and small teams who are just getting started with project management.
+          It includes unlimited cards, up to ten boards per workspace, and essential features like Power-Ups, basic automation,
+          and file attachments up to 10MB. It’s simple, flexible, and free forever — ideal for organizing personal projects or
+          small collaborations.
+        </p>
+      </section>
+
+      <section>
+        <h4 class="text-xl font-semibold text-black-600">Standard Plan</h4>
+        <p class="mt-2 text-gray-600 text-sm">
+          The Standard plan helps growing teams collaborate more effectively. It offers unlimited boards, advanced checklists,
+          custom fields, and more automation options. With additional views like calendar and dashboard, teams can plan and
+          track work more clearly. It’s designed for those who want to stay organized and productive without complexity.
+        </p>
+      </section>
+
+      <section>
+        <h4 class="text-xl font-semibold text-black-600"> Premium Plan</h4>
+        <p class="mt-2 text-gray-600 text-sm">
+          The Premium plan is built for teams that need to manage multiple projects and visualize work in different ways.
+          It includes all Standard features plus timeline, table, and map views, unlimited automation, and advanced admin
+          controls. This plan is best for teams looking to scale their workflow and gain more control over project tracking.
+        </p>
+      </section>
+
+      <section>
+        <h4 class="text-xl font-semibold text-black-600"> Enterprise Plan</h4>
+        <p class="mt-2 text-gray-600 text-sm">
+          The Enterprise plan is designed for large organizations that need powerful security, control, and flexibility.
+          It includes all Premium features plus organization-wide permissions, advanced admin tools, and enhanced data
+          protection. With centralized management and unlimited workspaces, Enterprise ensures smooth collaboration
+          across departments.
+        </p>
+      </section>
+    </div>
+
+    <!-- Footer -->
+    <div class="text-right pt-4 border-t mt-6">
+      <button
+        class="close-modal-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">
+        Close
+      </button>
+    </div>
+  </div>
+</div>
+
+    <!-- RESOURCES MODAL -->
+    <div id="resources-modal" class="fixed inset-0 z-[100] hidden items-center justify-center bg-black bg-opacity-50 modal-wrapper" aria-modal="true" role="dialog" aria-labelledby="resources-title">
+        <div class="modal-backdrop absolute inset-0"></div>
+        <div class="relative bg-white w-full max-w-4xl max-h-[90vh] mx-4 p-6 rounded-xl shadow-2xl overflow-y-auto modal-content">
+            <div class="flex justify-between items-center border-b pb-4 mb-4">
+                <h3 id="resources-title" class="text-2xl font-bold text-blue-600">Learn & Connect</h3>
+                <button class="close-modal-btn text-gray-400 hover:text-gray-600 transition">
+                    <span class="sr-only">Close modal</span>
+                    <svg class="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <div class="space-y-6">
+                <div class="bg-blue-50 p-4 rounded-lg text-center border border-blue-200">
+                    <p class="text-lg font-semibold text-blue-800">Helping teams work better, together</p>
+                    <p class="text-sm text-gray-600 mt-1">Discover Trello use cases, productivity tips, best practices for team collaboration, and expert remote work advice.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Trello guide</p><p class="text-sm text-gray-600 mt-1">Our easy to follow workflow guide will take you from project set-up to Trello expert in no time.</p></div>
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Remote work guide</p><p class="text-sm text-gray-600 mt-1">The complete guide to setting up your team for remote work success.</p></div>
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Webinars</p><p class="text-sm text-gray-600 mt-1">Enjoy our free Trello webinars and become a productivity professional.</p></div>
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Customer stories</p><p class="text-sm text-gray-600 mt-1">See how businesses have adopted Trello as a vital part of their workflow.</p></div>
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Developers</p><p class="text-sm text-gray-600 mt-1">The sky's the limit in what you can deliver to Trello users in your Power-Up!</p></div>
+                    <div class="p-4 rounded-lg shadow-sm border border-gray-200 hover:bg-gray-50 transition"><p class="font-bold text-blue-700">Help resources</p><p class="text-sm text-gray-600 mt-1">Need help? Articles and FAQs to get you unstuck.</p></div>
+                </div>
+            </div>
+            <div class="text-right pt-4 border-t mt-6">
+                <button class="close-modal-btn bg-gray-100 text-gray-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. JAVASCRIPT LOGIC (Generalized for all modals and the mobile menu) -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            
+            // --- Mobile Menu Logic ---
+            const menuToggle = document.getElementById("menu-toggle");
+            const mobileDrawer = document.getElementById("mobile-menu-drawer");
+            const iconBars = document.getElementById("icon-bars");
+            const iconClose = document.getElementById("icon-close");
+
+            menuToggle.addEventListener("click", () => {
+                const isExpanded = mobileDrawer.classList.toggle("hidden");
+                menuToggle.setAttribute('aria-expanded', !isExpanded);
+                iconBars.classList.toggle('hidden');
+                iconClose.classList.toggle('hidden');
+            });
+
+            // --- Modal Logic ---
+            const modalTriggers = document.querySelectorAll('a[data-modal-target]');
+            const closeModalBtns = document.querySelectorAll('.close-modal-btn');
+            const modalBackdrops = document.querySelectorAll('.modal-backdrop');
+
+            function openModal(modal) {
+                // All modals start as hidden. Remove hidden and add flex to display.
+                modal.classList.remove('hidden'); 
+                // Using requestAnimationFrame to ensure CSS applies before adding 'flex' for smooth transition
+                requestAnimationFrame(() => {
+                    modal.classList.add('flex'); // Show
+                });
+                document.body.classList.add('overflow-hidden'); // Prevent background scrolling
+            }
+
+            function closeModal(modal) {
+                // Trigger the fade-out transition by removing 'flex'
+                modal.classList.remove('flex');
+                
+                // Use a slight delay before adding 'hidden' to allow transition to run
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300); 
+                document.body.classList.remove('overflow-hidden');
+            }
+
+            // 1. Setup Trigger Clicks (Open Modal)
+            modalTriggers.forEach(trigger => {
+                trigger.addEventListener('click', (event) => {
+                    event.preventDefault(); // Stop hash navigation
+                    
+                    // Close mobile menu if open
+                    if (!mobileDrawer.classList.contains('hidden')) {
+                        mobileDrawer.classList.add('hidden');
+                        iconBars.classList.remove('hidden');
+                        iconClose.classList.add('hidden');
+                        menuToggle.setAttribute('aria-expanded', false);
+                    }
+
+                    const modalId = trigger.getAttribute('data-modal-target');
+                    const modal = document.getElementById(modalId);
+                    if (modal) {
+                        openModal(modal);
+                    }
+                });
+            });
+
+            // 2. Setup Close Button Clicks
+            closeModalBtns.forEach(button => {
+                button.addEventListener('click', () => {
+                    const modal = button.closest('.modal-wrapper');
+                    if (modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+
+            // 3. Setup Backdrop Clicks
+            modalBackdrops.forEach(backdrop => {
+                backdrop.addEventListener('click', () => {
+                    const modal = backdrop.closest('.modal-wrapper');
+                    if (modal) {
+                        closeModal(modal);
+                    }
+                });
+            });
+
+            // 4. Close on ESC key press
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    const openModal = document.querySelector('.modal-wrapper.flex');
+                    if (openModal) {
+                        closeModal(openModal);
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trello Hero Section</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f5f7fa;
+    }
+
+    /* Hero Section */
+    .hero {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      padding: 70px 10%;
+      background-color: #f5f7fa;
+      gap: 50px;
+    }
+
+    .hero-left {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .hero-left h1 {
+      font-size: 38px;
+      color: #091e42;
+      line-height: 1.3;
+      margin-bottom: 15px;
+    }
+
+    .hero-left p {
+      color: #172b4d;
+      font-size: 17px;
+      margin-bottom: 25px;
+    }
+
+    .input-area {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .input-area input {
+      flex: 1;
+      padding: 12px 15px;
+      border: 1px solid #dfe1e6;
+      border-radius: 5px;
+      outline: none;
+      font-size: 15px;
+    }
+
+    .input-area button {
+      background-color: #0065ff;
+      color: white;
+      border: none;
+      padding: 12px 18px;
+      border-radius: 5px;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .input-area button:hover {
+      background-color: #0052cc;
+    }
+
+    small {
+      display: block;
+      color: #5e6c84;
+      font-size: 13px;
+      margin-bottom: 15px;
+    }
+
+    small a {
+      color: #0052cc;
+      text-decoration: none;
+    }
+
+    .watch-video {
+      color: #0052cc;
+      text-decoration: none;
+      font-weight: 500;
+      font-size: 15px;
+    }
+
+    /* Hero Right (Image) */
+    .hero-right {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      position: relative;
+    }
+
+    .phone-img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    /* Floating Icons */
+    .app-icons {
+      position: absolute;
+      right: -30px;
+      top: 20%;
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+    }
+
+    .app-icons img {
+      width: 40px;
+      height: 40px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .hero {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .hero-left h1 {
+        font-size: 28px;
+      }
+
+      .input-area {
+        flex-direction: column;
+      }
+
+      .app-icons {
+        position: static;
+        flex-direction: row;
+        justify-content: center;
+        margin-top: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Hero Section Only -->
+  <section class="hero">
+    <div class="hero-left">
+      <h1>Capture, organize, and tackle your to-dos from anywhere.</h1>
+      <p>Escape the clutter and chaos—unleash your productivity with Trello.</p>
+      
+      <div class="input-area">
+        <input type="email" placeholder="Email">
+        <button class="cta-btn">Sign up – it’s free!</button>
+      </div>
+
+      <small>
+        By entering my email, I acknowledge the 
+        <a href="#">Atlassian Privacy Policy</a>.
+      </small>
+
+      <a href="#" class="watch-video">Watch video →</a>
+    </div>
+
+    <div class="hero-right"> 
+      <img src="gty.png" alt="Phone mockup" class="phone-img">
+
+    </div>
+  </section>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trello Productivity Section</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #ffffff;
+      color: #091e42;
+    }
+
+    .productivity-section {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 80px 10%;
+      flex-wrap: wrap;
+      gap: 50px;
+    }
+
+    /* Left Content */
+    .left-content {
+      flex: 1;
+      min-width: 280px;
+    }
+
+    .left-content h2 {
+      font-size: 32px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .left-content p {
+      color: #172b4d;
+      font-size: 16px;
+      margin-bottom: 40px;
+      line-height: 1.5;
+    }
+
+    .feature {
+      margin-bottom: 25px;
+      border-left: 4px solid transparent;
+      padding-left: 12px;
+      transition: 0.3s ease;
+    }
+
+    .feature h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+      color: #091e42;
+    }
+
+    .feature p {
+      margin: 0;
+      font-size: 15px;
+      color: #172b4d;
+      line-height: 1.5;
+    }
+
+    .feature.active {
+      background: #fff;
+      border-left: 4px solid #00c7e5;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+      border-radius: 8px;
+      padding: 15px 12px;
+    }
+
+    /* Right Image Section */
+    .right-image {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .right-image img {
+      max-width: 100%;
+      height: auto;
+      border-radius: 12px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .productivity-section {
+        flex-direction: column;
+        text-align: center;
+      }
+
+      .left-content {
+        order: 2;
+      }
+
+      .right-image {
+        order: 1;
+      }
+
+      .feature {
+        text-align: left;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Productivity Section -->
+  <section class="productivity-section">
+    <div class="left-content">
+      <h2>Your productivity powerhouse</h2>
+      <p>Stay organized and efficient with Inbox, Boards, and Planner. Every to-do, idea, or responsibility—no matter how small—finds its place, keeping you at the top of your game.</p>
+
+      <div class="feature">
+        <h3>Inbox</h3>
+        <p>When it’s on your mind, it goes in your Inbox. Capture your to-dos from anywhere, anytime.</p>
+      </div>
+
+      <div class="feature active">
+        <h3>Boards</h3>
+        <p>Your to-do list may be long, but it can be manageable! Keep tabs on everything from "to-dos to tackle" to "mission accomplished!"</p>
+      </div>
+
+      <div class="feature">
+        <h3>Planner</h3>
+        <p>Drag, drop, get it done. Snap your top tasks into your calendar and make time for what truly matters.</p>
+      </div>
+    </div>
+
+    <div class="right-image">
+      <img src="hyt.webp" alt="Trello Board Screenshot">
+    </div>
+  </section>
+
+  <script>
+    // JS to highlight selected feature
+    const features = document.querySelectorAll('.feature');
+    features.forEach(feature => {
+      feature.addEventListener('click', () => {
+        features.forEach(f => f.classList.remove('active'));
+        feature.classList.add('active');
+      });
+    });
+  </script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Two-Column Layout</title>
+    <style>
+        /* Base Styles and Reset */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f4f5f7; /* Light gray background */
+            color: #172b4d;
+        }
+
+        /* Main Section Container */
+        .simple-section {
+            padding: 60px 20px;
+            text-align: center;
+        }
+
+        /* The central container (like the white card in the image) */
+        .content-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(9, 30, 66, 0.15);
+            padding: 40px;
+            display: flex;
+            flex-direction: column; /* Stack vertically on small screens */
+            gap: 30px;
+            text-align: left;
+        }
+
+        /* Two-Column Layout Container */
+        .two-column-layout {
+            display: flex;
+            flex-direction: column; /* Default: Stack columns on mobile */
+            gap: 40px;
+        }
+
+        /* Left Column for the Image/Illustration */
+        .col-left {
+            flex: 1; /* Equal width on desktop */
+            min-height: 250px; /* Give the image area some space */
+            background-color: #e6f4ff; /* Placeholder background color */
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        /* Placeholder for the Image (replace with your actual image path) */
+        .col-left img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Right Column for the Text/Paragraph */
+        .col-right {
+            flex: 1; /* Equal width on desktop */
+            padding: 0; /* Add padding if needed, but keeping it tight here */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* Text/Paragraph Styling */
+        .email-magic-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #5e6c84;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .email-magic-header span {
+             /* Styled 'X' icon placeholder */
+            font-size: 20px;
+            color: #0052cc;
+            background-color: #deebff;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .email-magic-paragraph {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #42526e;
+        }
+
+        /* Desktop Layout (Min-width 768px) */
+        @media (min-width: 768px) {
+            .two-column-layout {
+                flex-direction: row; /* Side-by-side columns on desktop */
+                text-align: left;
+            }
+
+            .col-left {
+                min-height: 400px; /* Taller on desktop */
+            }
+
+            .col-right {
+                padding-left: 30px; /* Space between image and text */
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="simple-section">
+        <div class="content-wrapper">
+            <div class="two-column-layout">
+
+                <div class="col-left">
+                    <img src="email-todos.webp" alt="Placeholder Illustration">
+                </div>
+
+                <div class="col-right">
+                    <h3 style="color: black;">
+                     EMAIL MAGIC
+                    </h3>
+                    <p class="email-magic-paragraph" style="color: black;">
+                        Easily turn your emails into to-dos! Just forward them to your Trello inbox, and they'll be transformed by Atlassian Intelligence (AI) into organized to-dos with all the links you need.
+                    </p>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello Layout - Message App Sorcery (Simplified)</title>
+    <style>
+        /* General Reset and Base Styles */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f4f5f7;
+            color: #172b4d;
+        }
+
+        /* Main Section Container: Blue Background */
+        .message-app-sorcery-section {
+            background-color: #0079bf; /* Blue background for this section */
+            padding: 80px 20px;
+            text-align: center;
+        }
+
+        /* The central white card container */
+        .content-card-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(9, 30, 66, 0.15);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 40px;
+        }
+
+        /* Two-Column Layout Container */
+        .message-app-layout {
+            display: flex;
+            flex-direction: column; /* Default: Stack columns on mobile */
+            gap: 40px;
+        }
+        
+        /* --- Left Column: Paragraph --- */
+        .col-paragraph {
+            order: 1; /* Left/Top */
+            flex: 1;
+            text-align: left;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .paragraph-header {
+            font-size: 18px;
+            font-weight: 600;
+            color: #5e6c84;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .paragraph-header .icon {
+            font-size: 20px;
+            color: #00875a;
+            background-color: #e4fce9;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .paragraph-text {
+            font-size: 18px;
+            line-height: 1.7;
+            color: #42526e;
+        }
+        
+        /* --- Right Column: Simple Image Placeholder --- */
+        .col-illustration {
+            order: 2; /* Right/Bottom */
+            flex: 1;
+            min-height: 350px;
+            background-color: #f4f5f7; /* Light background for the image area */
+            border-radius: 4px;
+            position: relative;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Style for the actual image or placeholder image */
+        .col-illustration img {
+            max-width: 100%;
+            max-height: 100%;
+            height: auto;
+            border-radius: 4px;
+            /* Placeholder styling to make it look distinct */
+            border: 2px solid #ccc; 
+        }
+
+
+        /* WORK SMARTER section (below the main card) */
+        .work-smarter-section {
+            padding: 60px 20px 100px;
+            text-align: center;
+            background-color: #f4f5f7;
+        }
+
+        .work-smarter-section h2 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .work-smarter-section p {
+            font-size: 18px;
+            color: #42526e;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        /* Desktop Layout (Min-width 768px) */
+        @media (min-width: 768px) {
+            .content-card-wrapper {
+                padding: 60px;
+            }
+
+            .message-app-layout {
+                flex-direction: row; /* Side-by-side columns on desktop */
+                gap: 60px;
+            }
+            
+            /* Order for Desktop: Paragraph (left, order: 1) and Illustration (right, order: 2) */
+            .col-paragraph {
+                order: 1; 
+                padding-right: 30px; /* Space between text and image */
+            }
+
+            .col-illustration {
+                order: 2; 
+                min-height: 450px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        
+<section class="message-app-sorcery-section">
+            <div class="content-card-wrapper">
+                <div class="message-app-layout">
+
+                    <div class="col-paragraph">
+                        <h3 class="paragraph-header">
+                            <span class="icon">&#9993;</span> MESSAGE APP SORCERY
+                        </h3>
+                        <p class="paragraph-text">
+                            Need to follow up on a message from Slack or Microsoft Teams? Send it directly to your Trello board! Your favorite app interface lets you save messages that appear in your Trello Inbox with AI-generated summaries and links.
+                        </p>
+                    </div>
+
+                    <div class="col-illustration">
+                        <img src="inbox.webp" alt="Message App Illustration Placeholder">
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+        
+    <script>
+        // No JavaScript is required for this static layout.
+    </script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello Layout - Work Smarter Card Grid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        work-smarter-section{
+            
+        }
+        /* Tailwind CSS configuration for custom colors and fonts */
+        :root {
+            /* Define Trello-like colors */
+            --color-trello-blue: #0079bf;
+            --color-text-dark: #172b4d;
+            --color-text-medium: #42526e;
+            --color-text-light: #5e6c84;
+            --color-background-light: #f4f5f7;
+        }
+
+        /* Base Styles using Tailwind defaults */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background-light);
+            color: var(--color-text-dark);
+            padding-top: 50px; /* Space from the top, assuming no navbar */
+        }
+    </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'trello-blue': 'var(--color-trello-blue)',
+                        'trello-dark': 'var(--color-text-dark)',
+                        'trello-medium': 'var(--color-text-medium)',
+                        'trello-light': 'var(--color-text-light)',
+                        'bg-light': 'var(--color-background-light)',
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <main class="py-2 md:py-8 px-4 sm:px-6 lg:px-8 bg-white">
+
+        <section class="work-smarter-section">
+            <small>WORK SMARTER</small>
+            <h2>Do more with Trello</h2>
+            <p>Customize the way you organize with easy integrations, automation, and mirroring of your to-dos across multiple locations.</p>
+        </section>
+        
+        <!-- Three-Column Card Grid Container -->
+        <div class="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+
+            <!-- Card 1: Integrations -->
+            <div class="flex flex-col p-6 bg-white shadow-xl rounded-xl transition-all duration-300 hover:shadow-2xl border border-gray-100">
+                
+                <!-- Icon Placeholder 1 -->
+                <div class="w-16 h-16 mb-4 flex items-center justify-center rounded-xl bg-purple-100 p-3">
+                    <!-- SVG for Integrations (Purple/Blue Puzzle Piece) -->
+                    <svg class="w-full h-full text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4a2 2 0 100 4m-4-2a2 2 0 114 0m-4 0h6m-6 0h-2M13 15a2 2 0 100 4m-4-2a2 2 0 114 0m-4 0h6m-6 0h-2m8-12h2m-2 2h2m-2 2h2m-2 2h2m-2 2h2m-2 2h2m-2 2h2"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-2xl font-bold text-trello-dark mb-3">
+                    Integrations
+                </h3>
+
+                <p class="text-trello-medium mb-6 flex-grow">
+                    Connect the apps you are already using into your Trello workflow or add a Power-Up to fine-tune your specific needs.
+                </p>
+                
+                <!-- Call to Action 1 -->
+                <button class="w-fit text-trello-blue font-semibold py-2 px-4 rounded-lg border border-trello-blue hover:bg-trello-blue hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-trello-blue focus:ring-offset-2">
+                    Browse Integrations
+                </button>
+            </div>
+
+            <!-- Card 2: Automation -->
+            <div class="flex flex-col p-6 bg-white shadow-xl rounded-xl transition-all duration-300 hover:shadow-2xl border border-gray-100">
+                
+                <!-- Icon Placeholder 2 -->
+                <div class="w-16 h-16 mb-4 flex items-center justify-center rounded-xl bg-blue-100 p-3">
+                    <!-- SVG for Automation (Blue Gear/Cog) -->
+                    <svg class="w-full h-full text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-2xl font-bold text-trello-dark mb-3">
+                    Automation
+                </h3>
+
+                <p class="text-trello-medium mb-6 flex-grow">
+                    No-code automation is built into every Trello board. Focus on the work that matters most and let the robots do the rest.
+                </p>
+                
+                <!-- Call to Action 2 -->
+                <button class="w-fit text-trello-blue font-semibold py-2 px-4 rounded-lg border border-trello-blue hover:bg-trello-blue hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-trello-blue focus:ring-offset-2">
+                    Get to know Automation
+                </button>
+            </div>
+
+            <!-- Card 3: Card Mirroring -->
+            <div class="flex flex-col p-6 bg-white shadow-xl rounded-xl transition-all duration-300 hover:shadow-2xl border border-gray-100">
+                
+                <!-- Icon Placeholder 3 -->
+                <div class="w-16 h-16 mb-4 flex items-center justify-center rounded-xl bg-yellow-100 p-3">
+                    <!-- SVG for Card Mirroring (Orange/Yellow Cards) -->
+                    <svg class="w-full h-full text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-2xl font-bold text-trello-dark mb-3">
+                    Card mirroring
+                </h3>
+
+                <p class="text-trello-medium mb-6 flex-grow">
+                    View all your to-dos from multiple boards in one place. Mirror a card to keep track of work wherever you need it!
+                </p>
+                
+                <!-- Call to Action 3 -->
+                <button class="w-fit text-trello-blue font-semibold py-2 px-4 rounded-lg border border-trello-blue hover:bg-trello-blue hover:text-white transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-trello-blue focus:ring-offset-2">
+                    Compare plans
+                </button>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // No custom JavaScript is required for this static, responsive layout.
+    </script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello Layout - Testimonial & Value Prop</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define Trello-like colors */
+        :root {
+            --color-trello-blue: #0079bf;
+            --color-text-dark: #172b4d;
+            --color-text-medium: #42526e;
+            --color-text-light: #5e6c84;
+            --color-background-light: #f4f5f7;
+            --color-dark-blue: #0052cc; /* Dark blue used for the stat card background */
+        }
+
+        /* Base Styles using Tailwind defaults and custom color variables */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--color-background-light);
+            color: var(--color-text-dark);
+        }
+
+        /* Testimonial Section Styles */
+        .testimonial-section {
+            padding: 50px 20px 0; /* Add top padding to separate it from assumed previous content */
+            background-color: var(--color-background-light);
+        }
+
+        /* Main Wrapper (White box area) */
+        .testimonial-wrapper {
+            max-width: 1000px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(9, 30, 66, 0.15);
+            /* Important: Ensures the rounded corners are applied to the whole section */
+            overflow: hidden; 
+        }
+
+        /* Two-Column Flex Container */
+        .content-columns {
+            display: flex;
+            flex-direction: column; /* Stack vertically on mobile */
+            min-height: 450px;
+        }
+
+        /* Left Column: Quote and Attribution */
+        .col-quote {
+            flex: 1;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: left;
+        }
+
+        /* Right Column: Statistic and Callout */
+        .col-stat {
+            flex: 1;
+            padding: 40px;
+            background-color: var(--color-dark-blue); /* Dark blue background */
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            color: #ffffff; /* White text for contrast */
+        }
+
+        /* Quote Text Styling */
+        .quote-text {
+            font-size: 1.5rem; /* 24px */
+            line-height: 1.6;
+            margin-bottom: 30px;
+            font-weight: 500;
+            color: var(--color-text-dark);
+        }
+
+        /* Attribution/Source Styling */
+        .attribution-meta {
+            margin-top: auto; /* Pushes meta data to the bottom */
+            padding-top: 20px;
+            border-top: 1px solid #ebecf0; /* Light separator line */
+        }
+
+        .author-name {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 600;
+            color: var(--color-text-dark);
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .author-title {
+            font-size: 0.875rem; /* 14px */
+            color: var(--color-text-medium);
+            display: block;
+            margin-bottom: 20px;
+        }
+
+        .logo-source {
+            font-size: 0.75rem; /* 12px */
+            font-weight: 600;
+            color: var(--color-text-light);
+            display: block;
+            margin-bottom: 4px;
+        }
+        
+        .logo-text {
+            /* WOMEN WHO CODE Styling */
+            font-size: 1.5rem;
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: var(--color-text-dark);
+        }
+
+        .read-story-link {
+            font-size: 0.875rem;
+            color: var(--color-trello-blue);
+            text-decoration: underline;
+            margin-left: auto;
+            align-self: flex-end;
+            margin-top: 10px;
+        }
+
+        /* Stat Card Styling */
+        .stat-number {
+            font-size: 3rem; /* 48px */
+            font-weight: 900;
+            line-height: 1.1;
+            margin-bottom: 15px;
+        }
+        
+        .stat-description {
+            font-size: 1.125rem; /* 18px */
+            font-weight: 500;
+            line-height: 1.4;
+            max-width: 300px;
+            margin-bottom: 25px;
+        }
+
+        .stat-link {
+            font-size: 0.875rem;
+            font-weight: 600;
+            padding: 10px 20px;
+            background-color: #0079bf; /* Slightly lighter blue for button contrast */
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+
+        /* Logos Section (Below the card) */
+        .logos-section {
+            text-align: center;
+            padding: 50px 20px 80px;
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .logos-header {
+            font-size: 1.125rem;
+            color: var(--color-text-medium);
+            margin-bottom: 30px;
+        }
+        .logo-image{
+            text-align: center;
+            justify-items: center;
+        }
+/* Existing Logos Section CSS */
+.logos-section {
+    text-align: center; /* Ensures the header text remains centered */
+    padding: 50px 20px 80px;
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+/* Updated CSS for .logos-grid to center its content */
+.logos-grid {
+    display: flex; /* Activate flexbox */
+    justify-content: center; /* Horizontally centers the items inside */
+    align-items: center; /* Vertically centers the items inside (if the container has height) */
+    flex-wrap: wrap; /* Allows the logos to wrap responsively */
+    gap: 30px;
+    /* Since you only have one item right now, this will center that single item */
+}
+
+/* CSS for the Image */
+.logos-grid .logo-image {
+    /* Ensures the image scales correctly */
+    max-width: 100%;
+    height: auto;
+    max-height: 40px; 
+    
+    /* Remove any floating or margin properties that might interfere with centering */
+    display: block; 
+    margin: 0 auto; /* This line is often redundant when using justify-content: center on the parent, but it's a good fallback for block elements */
+}
+/* Update this rule, or add a new one for .logos-grid img */
+.logos-grid .logo-image {
+    max-height: 40px; /* Adjust height to fit the visual style, as seen in the screenshot */
+    width: auto;     /* Maintain aspect ratio */
+    filter: grayscale(100%); /* Optional: to make them look uniform and muted */
+    opacity: 0.7; /* Optional: subtle look */
+    transition: all 0.2s ease-in-out;
+}
+
+.logos-grid .logo-image:hover {
+    filter: grayscale(0%); /* Optional: full color on hover */
+    opacity: 1; /* Optional: full opacity on hover */
+}
+
+/* Remove or comment out the old .logos-grid .logo-placeholder if no longer needed */
+/*
+.logos-grid .logo-placeholder {
+    width: 80px;
+    height: 30px;
+    background-color: #dcdfe4;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    color: #5e6c84;
+    font-weight: bold;
+}
+*/
+
+        /* Desktop Responsiveness */
+        @media (min-width: 768px) {
+            .content-columns {
+                flex-direction: row; /* Side-by-side on desktop */
+            }
+
+            .col-quote {
+                padding: 60px 50px;
+            }
+
+            .col-stat {
+                padding: 60px 40px;
+            }
+            
+            .stat-number {
+                font-size: 4rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <main>
+        
+        <section class="testimonial-section">
+            <div class="testimonial-wrapper">
+                <div class="content-columns">
+                    
+                    <!-- LEFT COLUMN: Quote and Attribution -->
+                    <div class="col-quote">
+                        
+                        <!-- Quote Text -->
+                        <p class="quote-text">
+                            [Trello is] great for simplifying complex processes. As a manager, I can chunk [processes] down into bite-sized pieces for my team and then delegate that out, but still keep a bird’s-eye view.
+                        </p>
+                        
+                        <!-- Attribution and Source -->
+                        <div class="attribution-meta">
+                            <span class="author-name">Joey Rosenberg</span>
+                            <span class="author-title">Global Leadership Director at Women Who Code</span>
+                            
+                            <div class="flex justify-between items-center mt-4">
+                                <!-- Logo/Source Text -->
+                                <div class="flex flex-col">
+                                    <span class="logo-source">WOMEN WHO</span>
+                                    <span class="logo-text">CODE</span>
+                                </div>
+                                
+                                <!-- Read the story link -->
+                                <a href="#" class="read-story-link">
+                                    Read the story
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- RIGHT COLUMN: Statistic and Callout -->
+                    <div class="col-stat">
+                        <div class="stat-number">
+                            75%
+                        </div>
+                        <div class="stat-description">
+                            of organizations report that Trello delivers value to their business within 30 days.
+                        </div>
+                        <!-- Call to Action Link -->
+                        <a href="#" class="stat-link text-white hover:bg-trello-blue/80">
+                            Trello TechValidate Survey
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Community Logos Section -->
+        
+            <section class="logos-section">
+    <div class="logos-header">
+        Join a community of millions of users globally who are using Trello to get more done.
+    </div>
+    
+    <div class="logos-grid">
+        <img src="visa.svg" alt="Visa Logo" class="logo-image">
+    </div>
+</section>
+            
+    </main>
+
+    <script>
+        // No custom JavaScript is required for this static, responsive layout.
+        console.log("Testimonial section loaded successfully.");
+    </script>
+
+</body>
+</html>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello Layout - Get Started Section</title>
+    <style>
+        /* Define Trello-like colors */
+        :root {
+            --color-trello-blue: #0079bf;
+            --color-text-dark: #172b4d;
+            --color-text-medium: #42526e;
+            --color-text-link: #0052cc;
+            --color-background-light: #f4f5f7;
+            --color-button-hover: #00609a;
+        }
+
+        /* Base Styles */
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #ffffff; /* Assuming a white background for the main area */
+            color: var(--color-text-dark);
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Get Started Section --- */
+        .get-started-section {
+            padding: 80px 20px;
+            text-align: center;
+            background-color: #ffffff; /* White background */
+        }
+
+        .get-started-header {
+            font-size: 2.25rem; /* ~36px */
+            font-weight: 700;
+            margin-bottom: 25px;
+            color: var(--color-text-dark);
+        }
+
+        /* Form Container (to control max width and centering) */
+        .form-container {
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Input and Button Row */
+        .input-row {
+            display: flex;
+            flex-direction: column; /* Stack vertically on small screens */
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Email Input Field */
+        .email-input {
+            flex-grow: 1; /* Takes up available space on desktop */
+            padding: 12px 15px;
+            border: 1px solid #dfe1e6;
+            border-radius: 4px;
+            font-size: 1rem;
+            color: var(--color-text-dark);
+            box-shadow: inset 0 1px 2px rgba(9, 30, 66, 0.05);
+            transition: border-color 0.2s;
+        }
+        
+        .email-input:focus {
+            border-color: var(--color-trello-blue);
+            outline: none;
+            box-shadow: 0 0 0 2px var(--color-trello-blue), inset 0 1px 2px rgba(9, 30, 66, 0.05);
+        }
+
+        /* Sign Up Button */
+        .signup-button {
+            padding: 12px 20px;
+            background-color: var(--color-trello-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 4px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .signup-button:hover {
+            background-color: var(--color-button-hover);
+        }
+        
+        /* Privacy Acknowledgment Text */
+        .privacy-ack {
+            font-size: 0.875rem; /* 14px */
+            color: var(--color-text-medium);
+        }
+
+        .privacy-ack a {
+            color: var(--color-text-link); /* Blue link color */
+            text-decoration: none;
+        }
+
+        .privacy-ack a:hover {
+            text-decoration: underline;
+        }
+
+        /* Desktop Responsiveness */
+        @media (min-width: 600px) {
+            .input-row {
+                flex-direction: row; /* Horizontal on larger screens */
+                gap: 8px;
+            }
+            
+            .signup-button {
+                flex-shrink: 0; /* Prevents button from shrinking */
+                width: auto;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="get-started-section">
+        <div class="form-container">
+            
+            <h2 class="get-started-header">
+                Get started with Trello today
+            </h2>
+            
+            <form action="#" method="post" class="input-row">
+                <input 
+                    type="email" 
+                    name="email" 
+                    placeholder="Email" 
+                    class="email-input" 
+                    required
+                >
+                <button type="submit" class="signup-button">
+                    Sign up - it's free!
+                </button>
+            </form>
+
+            <p class="privacy-ack">
+                By entering my email, I acknowledge and agree to the 
+                <a href="#">Atlassian Privacy Policy</a>
+            </p>
+        </div>
+    </section>
+
+    <script>
+        // You would typically add form validation or submission logic here.
+    </script>
+
+</body>
+</html>
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trello Security Layout</title>
+    <style>
+        /* General Reset and Base Styles */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f4f5f7; /* Light background for the main page area */
+            color: #172b4d;
+        }
+
+        /* === Main Security Content Styles === */
+        .security-section-container {
+            padding: 50px 20px;
+            max-width: 1200px;
+            margin: 0 auto; /* Center the content */
+            min-height: 80vh; /* Ensure some vertical space */
+        }
+
+        .security-header {
+            max-width: 900px;
+            margin: 0 auto 40px;
+            text-align: left; /* Keep this left-aligned as per the image */
+        }
+
+        .security-header h1 {
+            /* font-size: 1.8em; */
+            /* font-weight: 20; */
+        }
+
+        .security-content {
+            display: flex;
+            gap: 60px;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+        }
+
+        .security-graphic {
+            flex-shrink: 0;
+            /* Approximate styling for the padlock graphic area */
+            width: 200px;
+            height: 200px;
+            background-color: #e6f4ff; 
+            border-radius: 50%;
+            border: 10px solid #cce0ff; 
+            position: relative;
+            /* Placeholder to visually represent the lock */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5rem;
+            color: #0052cc;
+        }
+
+        .security-text {
+            max-width: 500px;
+        }
+
+        .security-text h2 {
+            font-size: 2em;
+            margin-bottom: 20px;
+            font-weight: 700;
+        }
+
+        .security-text ul {
+            list-style-type: none; /* Removing default bullet points */
+            padding-left: 0;
+            margin-bottom: 20px;
+        }
+        
+        /* Custom list style using icons/symbols */
+        .security-text li {
+            font-size: 1.1em;
+            line-height: 1.8;
+            position: relative;
+            padding-left: 25px; /* Space for the custom bullet */
+        }
+
+        .security-text li::before {
+            content: "•"; /* Using a solid circle as a custom bullet */
+            color: #0052cc; /* Trello blue color */
+            font-weight: bold;
+            display: inline-block;
+            width: 1em;
+            margin-left: -1em;
+            position: absolute;
+            left: 0;
+        }
+
+        .security-text p {
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 30px;
+        }
+        
+        .security-text strong {
+            font-weight: 700;
+        }
+
+        .learn-more-btn {
+            padding: 10px 20px;
+            background-color: #fff;
+            color: #0052cc;
+            border: 1px solid #0052cc;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .learn-more-btn:hover {
+            background-color: #e6f4ff;
+        }
+
+        /* === Footer Styles === */
+        .main-footer {
+            background-color: #212529; /* Dark background like in the image */
+            color: #aeb4b8;
+            padding: 30px 40px;
+            margin-top: 50px;
+        }
+        
+        .footer-logo {
+            display: flex;
+            align-items: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #fff;
+            margin-bottom: 15px;
+        }
+
+        .footer-logo img {
+            height: 20px; /* Placeholder for Trello logo */
+            margin-right: 5px;
+        }
+        
+        .footer-logo a {
+            color: inherit;
+            text-decoration: none;
+            margin-left: 10px;
+            font-size: 0.7em;
+            font-weight: normal;
+        }
+
+        .footer-bottom {
+            display: flex;
+            justify-content: space-between;
+            max-width: 1200px;
+            margin: 0 auto;
+            border-top: 1px solid #333;
+            padding-top: 25px;
+        }
+
+        .footer-col {
+            flex: 1;
+            padding: 0 15px;
+            line-height: 1.8;
+            font-size: 0.9em;
+            min-width: 150px; /* Ensure columns don't get too narrow */
+        }
+
+        .footer-col strong {
+            color: #fff;
+            font-size: 1.1em;
+            display: block;
+            margin-bottom: 5px;
+        }
+        
+        .footer-col a {
+            color: inherit;
+            text-decoration: none;
+        }
+        
+        .footer-col a:hover {
+            text-decoration: underline;
+        }
+        
+        .footer-meta {
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85em;
+        }
+        
+        .meta-links a {
+            color: inherit;
+            text-decoration: none;
+            margin-left: 15px;
+        }
+        
+        .social-icons a {
+            color: #fff;
+            margin-left: 10px;
+            font-size: 1.2em;
+        }
+
+
+        /* === Media Queries for Responsiveness === */
+
+        /* Tablet and Smaller Desktop */
+        @media (max-width: 900px) {
+            .security-content {
+                flex-direction: column; /* Stack the image and text vertically */
+                text-align: center;
+                padding: 20px;
+            }
+
+            .security-graphic {
+                margin-bottom: 20px;
+            }
+
+            .security-text {
+                max-width: 100%;
+            }
+
+            .security-text ul {
+                text-align: left; 
+                display: inline-block; /* Center the list block itself */
+            }
+
+            .footer-bottom {
+                flex-wrap: wrap; /* Allow footer columns to wrap */
+            }
+
+            .footer-col {
+                flex-basis: 45%; /* Make two columns per row on tablet */
+                margin-bottom: 25px;
+                padding: 0 10px;
+            }
+            
+            .footer-meta {
+                flex-direction: column;
+                text-align: center;
+            }
+            
+            .meta-links, .social-icons {
+                margin-top: 10px;
+            }
+        }
+
+        /* Mobile Devices */
+        @media (max-width: 600px) {
+            .security-header h1 {
+                text-align: center;
+            }
+            
+            .security-graphic {
+                width: 150px;
+                height: 150px;
+                font-size: 3.5rem;
+            }
+
+            .security-text h2 {
+                font-size: 1.5em;
+            }
+
+            .footer-bottom {
+                flex-direction: column; /* Stack all footer columns vertically */
+            }
+
+            .footer-col {
+                flex-basis: 100%;
+                margin-bottom: 20px;
+                padding: 0;
+                text-align: center;
+            }
+            
+            .footer-col strong {
+                margin-bottom: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trello Footer</title>
+  <link
+  rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+/>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background-color: #f9fafb;
+    }
+
+    footer {
+      background-color: #0d1b2a;
+      color: white;
+      padding: 50px 40px 20px;
+    }
+
+    .footer-content {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      gap: 30px;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
+      padding-bottom: 30px;
+    }
+
+    .footer-section h3 {
+      margin-bottom: 10px;
+      font-size: 16px;
+      color: #f4f4f4;
+    }
+
+    .footer-section ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    .footer-section ul li {
+      margin: 6px 0;
+      font-size: 14px;
+      color: white;
+      cursor: pointer;
+    }
+
+    .footer-section ul li:hover {
+      text-decoration: underline;
+    }
+
+    .footer-bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-top: 20px;
+      flex-wrap: wrap;
+      gap: 15px;
+      font-size: 14px;
+      color: #94a3b8;
+    }
+
+    .social-icons i {
+      margin-right: 12px;
+      cursor: pointer;
+      font-size: 18px;
+      color: #e6f4ff;
+    }
+
+    .social-icons i:hover {
+      color: #0052cc;
+    }
+
+    @media (max-width: 768px) {
+      .footer-content {
+        flex-direction: column;
+        text-align: left;
+      }
+    }
+  </style>
+
+  <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+  <footer>
+    <div class="footer-content">
+      <div class="footer-section">
+        <img src="icon.png" alt="Trello" width="80">
+        <h2>Atlassian</h2>
+        <p>Trello</p>
+
+      </div>
+      <div class="footer-section">
+        <h3>About Trello</h3>
+        <ul>
+          <li>What's behind the boards</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Jobs</h3>
+        <ul>
+          <li>Learn about open roles</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Apps</h3>
+        <ul>
+          <li>Download for Desktop</li>
+          <li>Download for Mobile</li>
+        </ul>
+      </div>
+      <div class="footer-section">
+        <h3>Contact us</h3>
+        <ul>
+          <li>Need anything? Get in touch.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer-bottom">
+      <div class="meta-links">
+        <a href="#">Privacy Policy </a>
+        <a href="#">Terms</a>
+      <a>© 2024 Atlassian</a>
+      </div>
+      
+      <div class="social-icons">
+        <i class="fab fa-instagram"></i>
+        <i class="fab fa-facebook"></i>
+        <i class="fab fa-linkedin"></i>
+        <i class="fab fa-twitter"></i>
+      </div>
+    <!-- </div> -->
+  </footer>
+
+  <script>
+    // Optional JS for demo interaction
+    document.querySelectorAll('footer ul li').forEach(item => {
+      item.addEventListener('click', () => alert('Clicked: ' + item.textContent));
+    });
+  </script>
+
+</body>
+</html>
+
+
+</body>
+</html>
+  <script src="script.js"></script>
+</body>
+</html>
+
+    <script src="script.js"></script>
+</body>
+</html>
