@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Trello Clone Login</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background-color: #f4f5f7;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+      flex-direction: column;
+    }
+
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      width: 360px;
+      max-width: 90%;
+      text-align: center;
+      padding: 30px;
+      z-index: 2;
+      transition: 0.3s ease;
+      margin-bottom: 25px;
+    }
+
+    .logo {
+    
+      font-size: 26px;
+      font-weight: 600;
+      color: #0052cc;
+      margin-bottom: 10px;
+    }
+
+    h2 {
+      font-size: 18px;
+      margin-bottom: 20px;
+      color: #333;
+    }
+
+    input[type='email'] {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      margin-bottom: 15px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .btn {
+      width: 100%;
+      background: #0052cc;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: 0.3s ease;
+    }
+
+    .btn:hover {
+      background: #0747a6;
+    }
+
+    .social-login {
+      margin-top: 20px;
+    }
+
+    .social-login p {
+      font-size: 14px;
+      color: #555;
+      margin: 10px 0;
+    }
+
+    .social-login button {
+      width: 100%;
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      border-radius: 6px;
+      margin: 6px 0;
+      cursor: pointer;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      font-size: 14px;
+      transition: background 0.2s;
+    }
+
+    .social-login button:hover {
+      background: #f0f0f0;
+    }
+
+    .social-login button img {
+      width: 18px;
+      height: 18px;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      color: #666;
+    }
+
+    .footer a {
+      color: #0052cc;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Atlassian Footer */
+    .atlassian-footer {
+      text-align: center;
+      font-size: 12px;
+      color: #888;
+      max-width: 400px;
+      line-height: 1.6;
+    }
+
+    .atlassian-footer a {
+      color: #0052cc;
+      text-decoration: none;
+    }
+
+    .atlassian-footer a:hover {
+      text-decoration: underline;
+    }
+
+    .atlassian-logo {
+      font-weight: 600;
+      color: #888;
+      margin-bottom: 5px;
+      letter-spacing: 0.5px;
+    }
+
+    /* Decorative side images */
+    .left-img,
+    .right-img {
+      position: absolute;
+      bottom: 0;
+      width: 280px;
+      z-index: 1;
+      transition: 0.3s ease;
+    }
+
+    .left-img {
+      left: 0;
+    }
+
+    .right-img {
+      right: 0;
+    }
+
+    /* Responsive Design */
+    @media (max-width: 900px) {
+      .left-img,
+      .right-img {
+        width: 200px;
+        opacity: 0.8;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .left-img,
+      .right-img {
+        display: none;
+      }
+
+      body {
+        background-color: #fff;
+      }
+
+      .container {
+        width: 90%;
+        box-shadow: none;
+        border: 1px solid #eee;
+      }
+
+      .atlassian-footer {
+        font-size: 11px;
+        padding: 0 10px;
+      }
+    }
+    body {
+      /* font-family: 'Poppins', sans-serif;
+      background-color: #f9fafb;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh; */
+    }
+
+    .remember-container {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: #333;
+    }
+
+    input[type="checkbox"] {
+      width: 14px;
+      height: 14px;
+      cursor: pointer;
+      accent-color: #4f46e5; /* nice blue-purple color */
+    }
+
+  </style>
+</head>
+<body>
+  <!-- Side illustrations
+  <img src="left.png" height="300" width="200" alt="illustration left" class="left-img" />
+  <img src="right.webp" alt="illustration right" class="right-img" /> -->
+
+  <!-- Main login box -->
+  <div class="container">
+   <div><img src="icon.png" alt="Trello Logo" style="width: 50px;" /></div>
+    <div class="logo">Trello</div>
+    <h2>Log in to continue</h2>
+    <p style="text-align: left ;">Email</p>
+    <input type="email" placeholder="Enter your email" required/>
+    <label class="remember-container">
+    <input type="checkbox" id="rememberMe">
+    Remember me
+  </label>
+  <br>
+    <button class="btn">Continue</button>
+
+    <div class="social-login">
+      <p>Or continue with:</p>
+      <button><img src="https://cdn-icons-png.flaticon.com/512/2991/2991148.png" /> Google</button>
+      <button><img src="https://cdn-icons-png.flaticon.com/512/732/732221.png" /> Microsoft</button>
+      <button><img src="https://cdn-icons-png.flaticon.com/512/179/179309.png" /> Apple</button>
+      <button><img src="https://cdn-icons-png.flaticon.com/512/2111/2111615.png" /> Slack</button>
+    </div>
+
+    <div class="footer">
+      <p>Can't login? <a href="signup.html">Create an Account</a></p>
+      <div class="atlassian-footer">
+    <div class="atlassian-logo">ATLASSIAN</div>
+    <p>One account for Trello, Jira, Confluence and more. <a href="#">Learn more</a></p>
+    <p>This site is protected by reCAPTCHA and the Google <a href="#">Privacy Policy</a> and <a href="#">Terms of Service</a> apply.</p>
+  </div>
+    </div>
+  </div>
+
+  
+</body>
+</html>
